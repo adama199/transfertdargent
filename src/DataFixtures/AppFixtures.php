@@ -13,12 +13,12 @@ class AppFixtures extends Fixture
     // public function load(ObjectManager $manager)
     // {
       
-    //     private $encoder;
+        private $encoder;
 
-    // public function __construct(UserPasswordEncoderInterface $encoder)
-    // {
-    //     $this->encoder = $encoder;
-    // }
+    public function __construct(UserPasswordEncoderInterface $encoder)
+    {
+        $this->encoder = $encoder;
+    }
     public function load(ObjectManager $manager)
     {
         $role_admin_system = new Role();
@@ -44,11 +44,11 @@ class AppFixtures extends Fixture
         $user = new User();
         $user->setUsername('supadmin123@gmail.com');
         $user->setRole($roleAdmdinSystem);
-        $user->setPassword('$argon2id$v=19$m=65536,t=4,p=1$qOZJi0CHDyQlMPcfHvc3mw$wW1tR26QAogKSJMMBLGt/ofiC7dcK0FweSAufR7vZ4k');
+        $user->setPassword($this->encoder->encodePassword($user, "123"));
         $user->setRoles(["ROLE_ADMIN_SYSTEM"]);
         $user->setPrenom("adama");
         $user->setNom("Diakhate");
-        $user->setStatut("active");
+        $user->setisActif(true);
         $manager->persist($user);
         $manager->flush();
   

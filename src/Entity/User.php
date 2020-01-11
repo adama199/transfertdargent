@@ -2,17 +2,22 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\AdvancedUserInterface;
 
 /**
  * @ApiResource()
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
  * @UniqueEntity(fields={"username"}, message="Cet utilisateur existe déjà")
  */
-class User implements UserInterface
+class User implements AdvancedUserInterface
 {
     /**
      * @ORM\Id()
@@ -23,39 +28,48 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
+     * @Assert\NotBlank(message="Le champ ne doit pas être vide")
+     * @Groups("get")
      */
     private $username;
 
     /**
      * @ORM\Column(type="json")
+     * @Groups("get")
      */
     private $roles = [];
 
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
+     * @Groups("get")
      */
     private $password;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Role", inversedBy="users")
+     * @Groups("get")
+     *  @ApiSubresource(maxDepth=1) 
      */
     private $role;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups("get")
      */
     private $prenom;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups("get")
      */
     private $nom;
 
     /**
-     * @ORM\Column(type="string")
+     * @ORM\Column(type="boolean")
      */
-    private $statut;
+    private $isActif;
+
 
     public function getId(): ?int
     {
@@ -86,7 +100,7 @@ class User implements UserInterface
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+        
 
         return array_unique($roles);
     }
@@ -165,16 +179,29 @@ class User implements UserInterface
 
         return $this;
     }
-
-    public function getStatut(): ?string
-    {
-        return $this->statut;
+    public function isAccountNonExpired(){
+        return true;
     }
+     public function isAccountNonLocked(){
+         return true;
+     }
+     public function isCredentialsNonExpired()
+     {
+         return true;
+     }
+     public function isEnabled(){
+         return $this->isActif;
+     }
 
-    public function setStatut(string $statut): self
-    {
-        $this->statut = $statut;
+     public function getIsActif(): ?bool
+     {
+         return $this->isActif;
+     }
 
-        return $this;
-    }
+     public function setIsActif(bool $isActif): self
+     {
+         $this->isActif = $isActif;
+
+         return $this;
+     }
 }
